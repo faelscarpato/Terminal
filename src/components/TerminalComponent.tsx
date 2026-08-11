@@ -34,7 +34,9 @@ export function TerminalComponent({ onTerminalReady }: TerminalComponentProps) {
     // Delay fit to ensure container has dimensions
     requestAnimationFrame(() => {
       try {
-        fitAddon.fit();
+        if (terminalRef.current && terminalRef.current.clientWidth > 0 && fitAddon.proposeDimensions()) {
+          fitAddon.fit();
+        }
       } catch (e) {}
     });
 
@@ -46,9 +48,13 @@ export function TerminalComponent({ onTerminalReady }: TerminalComponentProps) {
     }
 
     const resizeObserver = new ResizeObserver(() => {
-      try {
-        fitAddon.fit();
-      } catch (e) {}
+      requestAnimationFrame(() => {
+        try {
+          if (terminalRef.current && terminalRef.current.clientWidth > 0 && fitAddon.proposeDimensions()) {
+            fitAddon.fit();
+          }
+        } catch (e) {}
+      });
     });
     
     resizeObserver.observe(terminalRef.current);

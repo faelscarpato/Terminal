@@ -22,6 +22,7 @@ function IDE() {
   const [activeFile, setActiveFile] = useState<string>('/index.js');
   const [fileContent, setFileContent] = useState<string>('');
   const [isBooting, setIsBooting] = useState(true);
+  const [bootError, setBootError] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const termRef = useRef<{ term: Terminal; fitAddon: FitAddon } | null>(null);
@@ -41,8 +42,10 @@ function IDE() {
         }
         
         setIsBooting(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Boot error", err);
+        setBootError(err.message || String(err));
+        setIsBooting(false);
       }
     }
     boot();
@@ -132,7 +135,21 @@ function IDE() {
         <Panel defaultSize={80}>
           <Group orientation="vertical">
             <Panel defaultSize={60} minSize={20}>
-              {isBooting ? (
+              {bootError ? (
+                <div className="flex flex-col items-center justify-center h-full text-zinc-600 dark:text-zinc-400 p-8 text-center space-y-4">
+                  <div className="text-red-500 font-semibold mb-2">Environment Boot Failed</div>
+                  <div className="bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 p-4 rounded-md text-sm font-mono max-w-xl overflow-auto text-left w-full border border-red-200 dark:border-red-900/50">
+                    {bootError}
+                  </div>
+                  {bootError.includes('crossOriginIsolated') && (
+                    <div className="bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 p-4 rounded-md text-sm max-w-xl text-left w-full border border-blue-200 dark:border-blue-900/50 mt-4">
+                      <strong>Note:</strong> WebContainers require strict cross-origin isolation which is not available in all iframe preview environments. 
+                      <br /><br />
+                      Please click the <strong>"Open in New Tab"</strong> button in the top right corner of the AI Studio preview window to use the interactive terminal and Node.js environment.
+                    </div>
+                  )}
+                </div>
+              ) : isBooting ? (
                 <div className="flex items-center justify-center h-full text-zinc-500">
                   Booting WebContainer environment...
                 </div>
